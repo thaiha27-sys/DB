@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DANH BẠ THEO DÕI — HQKV8</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--navy:#1A3A6B;--gold:#C8960C;--lb:#E8EEF7;--gray:#64748b;--line:#e2e8f0;--ok:#16a34a;--warn:#dc2626}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;background:#f1f5f9;color:#1e293b;font-size:15px;padding-bottom:78px}
+  #gate{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:24px}
+  #gate h1{color:#fff;font-size:20px;margin-bottom:6px;text-align:center}
+  #gate p{color:#c7d2e5;font-size:13px;margin-bottom:24px;text-align:center}
+  #pin{width:200px;text-align:center;font-size:28px;letter-spacing:12px;padding:12px;border:none;border-radius:12px;background:#fff}
+  #gate button{margin-top:18px;background:var(--gold);color:#fff;border:none;padding:12px 40px;border-radius:12px;font-size:16px;font-weight:600}
+  #pinErr{color:#fca5a5;font-size:13px;margin-top:12px;height:16px}
+  .synctag{position:absolute;top:14px;right:14px;font-size:10px;padding:4px 8px;border-radius:6px;font-weight:600}
+  .synctag.on{background:#dcfce7;color:#166534}.synctag.off{background:#fef3c7;color:#92400e}
+  header{background:var(--navy);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20}
+  header .t{font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  header .badge{font-size:9px;padding:3px 7px;border-radius:6px;font-weight:600}
+  header .badge.on{background:rgba(22,163,74,.3);color:#bbf7d0}header .badge.off{background:rgba(200,150,12,.3);color:#fde68a}
+  header .s{font-size:11px;color:#c7d2e5;margin-top:2px}
+  .stat{display:flex;gap:6px;margin-top:9px}
+  .stat div{flex:1;background:rgba(255,255,255,.12);border-radius:8px;padding:5px 3px;text-align:center}
+  .stat b{font-size:16px;color:var(--gold);display:block}
+  .stat span{font-size:9px;color:#c7d2e5}
+  .searchbar{padding:9px 12px;background:#fff;position:sticky;top:0;z-index:15;border-bottom:1px solid var(--line)}
+  #search{width:100%;padding:11px 14px;border:2px solid var(--lb);border-radius:12px;font-size:15px}
+  #search:focus{outline:none;border-color:var(--navy)}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:9px 12px;background:#fff;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;padding:6px 13px;border-radius:20px;background:var(--lb);color:var(--navy);font-size:12px;font-weight:600;border:none}
+  .chip.on{background:var(--navy);color:#fff}
+  .note{background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:11px;padding:7px 10px;border-radius:8px;margin:8px 12px}
+  .cnt{font-size:12px;color:var(--gray);padding:4px 14px;display:flex;justify-content:space-between;align-items:center}
+  .cnt .sync{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600}
+  .cnt .sync.on{background:#dcfce7;color:#166534}.cnt .sync.off{background:#fef3c7;color:#92400e}
+  .list{padding:4px 12px}
+  .card{background:#fff;border-radius:14px;padding:13px;margin-bottom:9px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:4px solid var(--gold)}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .card .name{font-size:15px;font-weight:700;color:var(--navy)}
+  .card .role{font-size:13px;color:#334155;margin-top:2px}
+  .card .org{font-size:12px;color:var(--gray);margin-top:2px}
+  .card .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+  .tag{font-size:10px;padding:3px 7px;border-radius:6px;background:var(--lb);color:var(--navy);font-weight:600;border:none}
+  .card .exp{display:none;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:13px}
+  .card.open .exp{display:block}
+  .row{display:flex;justify-content:space-between;padding:4px 0;gap:12px}
+  .row .k{color:var(--gray);flex-shrink:0}.row .v{text-align:right;font-weight:500}
+  .row .v a{color:var(--navy);text-decoration:none;font-weight:600}
+  .bday{font-size:9px;background:var(--gold);color:#fff;padding:2px 6px;border-radius:5px;font-weight:600;margin-left:4px}
+  .actbtn{display:flex;gap:6px;margin-top:9px}
+  .actbtn button{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600}
+  .actbtn .e{background:var(--lb);color:var(--navy)}.actbtn .c{background:#dcfce7;color:#166534}
+  .fab{position:fixed;bottom:14px;left:12px;right:12px;display:flex;gap:8px;z-index:30}
+  .fab button{flex:1;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+  .fab .add{background:var(--navy)}.fab .exc{background:var(--ok)}.fab .set{flex:0 0 52px;background:var(--gold)}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:50;display:none;align-items:flex-end}
+  .modal.on{display:flex}
+  .sheet{background:#fff;width:100%;max-height:93vh;border-radius:20px 20px 0 0;overflow-y:auto;padding:16px 14px 28px}
+  .sheet h2{font-size:16px;color:var(--navy);margin-bottom:12px}
+  .fld{margin-bottom:10px}
+  .fld label{font-size:12px;color:var(--gray);display:block;margin-bottom:3px;font-weight:600}
+  .fld input,.fld textarea{width:100%;padding:9px 11px;border:1.5px solid var(--lb);border-radius:9px;font-size:14px;font-family:inherit}
+  .fld input:focus,.fld textarea:focus{outline:none;border-color:var(--navy)}
+  .grpsel{display:flex;flex-wrap:wrap;gap:5px}
+  .grpsel span{font-size:12px;padding:5px 11px;border-radius:8px;background:var(--lb);color:var(--navy);font-weight:600}
+  .grpsel span.on{background:var(--navy);color:#fff}
+  .mbtn{display:flex;gap:8px;margin-top:8px}
+  .mbtn button{flex:1;padding:12px;border:none;border-radius:11px;font-size:15px;font-weight:700}
+  .mbtn .save{background:var(--navy);color:#fff}.mbtn .cancel{background:#e2e8f0;color:#475569}
+  .mbtn .del{background:var(--warn);color:#fff;flex:0 0 auto;padding:12px 16px}
+  .empty{text-align:center;color:var(--gray);padding:40px 20px}
+  .exphint{font-size:11px;color:var(--gray);margin:6px 0 12px;line-height:1.5}
+  .setrow{margin-bottom:12px}
+  .setrow label{font-size:13px;color:var(--navy);font-weight:600;display:block;margin-bottom:4px}
+  .setrow input{width:100%;padding:10px;border:1.5px solid var(--lb);border-radius:9px;font-size:13px}
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="synctag off" id="syncTag">● Chưa nối Sheet</div>
+  <h1>DANH BẠ THEO DÕI</h1><p>Chi cục Hải quan khu vực VIII<br><span style="font-size:11px;opacity:.8">Cần kết nối Google Sheet để sử dụng</span></p>
+  <input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+  <div id="pinErr"></div><button onclick="checkPin()" id="unlockBtn">Mở khóa</button>
+</div>
+<header>
+  <div class="t"><span>📇 Danh bạ theo dõi</span><span class="badge off" id="modeBadge">OFFLINE</span></div>
+  <div class="s">HQKV8 · Nội bộ · Bảo mật</div>
+  <div class="stat">
+    <div><b id="cTotal">0</b><span>Tổng</span></div>
+    <div><b id="cLead">0</b><span>Tỉnh ủy viên</span></div>
+    <div><b id="cQD857">0</b><span>QĐ 857</span></div>
+    <div><b id="cBday">0</b><span>🎂 tháng này</span></div>
+  </div>
+</header>
+<div class="searchbar"><input id="search" type="text" placeholder="🔍 Tìm tên, chức vụ, SĐT, đơn vị..." oninput="render()"></div>
+<div class="chips" id="chips"></div>
+<div class="cnt"><span id="cntTxt"></span><span class="sync off" id="syncState">Offline</span></div>
+<div class="list" id="list"></div>
+<div class="fab">
+  <button class="add" onclick="openEdit(null)">＋ Thêm</button>
+  <button class="exc" onclick="exportExcel()">⬇ Excel</button>
+  <button class="set" onclick="openSettings()">⚙</button>
+</div>
+<div class="modal" id="modal"><div class="sheet">
+  <h2 id="mTitle">Thêm người</h2>
+  <div class="fld"><label>Họ và tên *</label><input id="f_name"></div>
+  <div class="fld"><label>Chức vụ (cập nhật mới nhất)</label><input id="f_role"></div>
+  <div class="fld"><label>Cơ quan / Đơn vị</label><input id="f_org" list="orgList"></div>
+  <datalist id="orgList"></datalist>
+  <div class="fld"><label>Ngày sinh (dd/mm/yyyy)</label><input id="f_dob" placeholder="15/03/1975"></div>
+  <div class="fld"><label>Giới tính</label><input id="f_sex" placeholder="Nam / Nữ"></div>
+  <div class="fld"><label>Điện thoại</label><input id="f_phone" inputmode="tel"></div>
+  <div class="fld"><label>Email</label><input id="f_email"></div>
+  <div class="fld"><label>Nhóm phân loại (chọn nhiều)</label><div class="grpsel" id="grpSel"></div></div>
+  <div class="fld"><label>Ghi chú / Đặc điểm</label><textarea id="f_note" rows="2"></textarea></div>
+  <div class="mbtn">
+    <button class="del" id="delBtn" onclick="delPerson()">Xóa</button>
+    <button class="cancel" onclick="closeModal()">Hủy</button>
+    <button class="save" id="saveBtn" onclick="savePerson()">Lưu</button>
+  </div>
+</div></div>
+<div class="modal" id="setModal"><div class="sheet">
+  <h2>⚙ Cài đặt đồng bộ Google Sheet</h2>
+  <div class="exphint">
+    Dán <b>URL Web App</b> (kết thúc bằng <b>/exec</b>) lấy từ Google Apps Script để bật lưu bền &amp; đồng bộ mọi máy.
+    Khi đã nối, mọi thêm/sửa/xóa sẽ lưu thẳng vào Sheet. Để trống = chế độ offline (chỉ xem &amp; xuất Excel).
+  </div>
+  <div class="setrow"><label>URL Web App (/exec)</label><input id="apiUrl" placeholder="https://script.google.com/.../exec"></div>
+  <div class="setrow"><label>Tên người thao tác (ghi vào nhật ký)</label><input id="actorName" placeholder="VD: Thái Hà - VP"></div>
+  <div class="mbtn">
+    <button class="cancel" onclick="document.getElementById('setModal').classList.remove('on')">Đóng</button>
+    <button class="save" onclick="saveSettings()">Lưu &amp; Kết nối</button>
+  </div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const GROUPS=["LĐ Chi cục","Trưởng phòng/Đội trưởng","Tỉnh ủy viên","Thường vụ Tỉnh ủy","BCH Đảng bộ UBND tỉnh","Lớp bồi dưỡng phát ngôn (QĐ 857)","Cấp trên (Cục HQ)","CBCC HQKV8","Xã/Phường","Đối tác/Phối hợp"];
+const SEED=[];
+let DATA=[...SEED];
+let ORGS=[...new Set(DATA.map(d=>d.org).filter(Boolean))].sort();
+let nextId=Math.max(...DATA.map(d=>d.id))+1;
+let editId=null,curGroups=[],activeChip="Tất cả";
+let PIN="", API_URL="", ACTOR="";
+// đọc cấu hình đã lưu (dùng biến toàn cục thay localStorage vì artifact chặn storage; bản deploy thật localStorage hoạt động)
+try{ API_URL=window.__cfgApi||""; ACTOR=window.__cfgActor||""; }catch(e){}
+
+function toast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function setMode(online){
+  document.getElementById('modeBadge').textContent=online?'ĐỒNG BỘ':'OFFLINE';
+  document.getElementById('modeBadge').className='badge '+(online?'on':'off');
+  const ss=document.getElementById('syncState');ss.textContent=online?'Đã nối Sheet':'Offline';ss.className='sync '+(online?'on':'off');
+  const st=document.getElementById('syncTag');if(st){st.textContent=online?'● Đã nối Sheet':'● Chưa nối Sheet';st.className='synctag '+(online?'on':'off');}
+}
+async function checkPin(){
+  const val=document.getElementById('pin').value;
+  if(!val){return;}
+  PIN=val;
+  if(API_URL){
+    // thử tải từ Sheet
+    document.getElementById('unlockBtn').innerHTML='<span class="spin"></span>';
+    try{
+      const res=await fetch(API_URL+'?pin='+encodeURIComponent(PIN));
+      const j=await res.json();
+      if(!j.ok){document.getElementById('pinErr').textContent=j.error||'Không mở được';document.getElementById('unlockBtn').textContent='Mở khóa';document.getElementById('pin').value='';return;}
+      DATA=j.data; ORGS=[...new Set(DATA.map(d=>d.org).filter(Boolean))].sort();
+      nextId=Math.max(...DATA.map(d=>Number(d.id)||0))+1;
+      setMode(true);
+      enter();
+    }catch(err){
+      document.getElementById('pinErr').textContent='Lỗi kết nối, dùng chế độ offline';
+      setMode(false); enter();
+    }
+  }else{
+    // Bản public: chưa nối Sheet -> hướng dẫn cấu hình
+    document.getElementById('pinErr').innerHTML='Chưa nối Google Sheet.<br>Nhập PIN bất kỳ rồi bấm ⚙ để cấu hình.';
+    if(PIN){ setMode(false); enter(); }
+  }
+}
+document.getElementById('pin').addEventListener('keyup',e=>{if(e.key==='Enter')checkPin()});
+function enter(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('orgList').innerHTML=ORGS.map(o=>`<option value="${o}">`).join('');
+  initChips();render();
+}
+function initChips(){
+  document.getElementById('chips').innerHTML=["Tất cả",...GROUPS].map(g=>`<button class="chip ${g===activeChip?'on':''}" onclick="setChip('${g.replace(/'/g,"\\'")}')">${g}</button>`).join('');
+  document.getElementById('grpSel').innerHTML=GROUPS.map(g=>`<span onclick="toggleGrp(this,'${g.replace(/'/g,"\\'")}')">${g}</span>`).join('');
+}
+function setChip(g){activeChip=g;initChips();render()}
+function bdayMonth(dob){if(!dob)return false;const p=String(dob).split('/');return p.length===3&&parseInt(p[1])===(new Date().getMonth()+1)}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function render(){
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  let arr=DATA.filter(p=>{
+    const inG=activeChip==="Tất cả"||(p.groups||[]).includes(activeChip);
+    const hay=[p.name,p.role,p.org,p.phone,p.note,p.email].join(' ').toLowerCase();
+    return inG&&(!q||hay.includes(q));
+  });
+  document.getElementById('cTotal').textContent=DATA.length;
+  document.getElementById('cLead').textContent=DATA.filter(p=>(p.groups||[]).includes("Tỉnh ủy viên")).length;
+  document.getElementById('cQD857').textContent=DATA.filter(p=>(p.groups||[]).includes("Lớp bồi dưỡng phát ngôn (QĐ 857)")).length;
+  document.getElementById('cBday').textContent=DATA.filter(p=>bdayMonth(p.dob)).length;
+  document.getElementById('cntTxt').textContent=`Hiển thị ${arr.length} / ${DATA.length} người`;
+  const list=document.getElementById('list');
+  if(!arr.length){list.innerHTML='<div class="empty">Không có kết quả.</div>';return}
+  arr=arr.slice(0,300);
+  list.innerHTML=arr.map(p=>`
+    <div class="card" onclick="this.classList.toggle('open')">
+      <div class="top"><div>
+        <div class="name">${esc(p.name)}${bdayMonth(p.dob)?'<span class="bday">🎂 SN</span>':''}</div>
+        <div class="role">${esc(p.role)||'<i>—</i>'}</div>
+        <div class="org">${esc(p.org)}</div>
+      </div></div>
+      <div class="tags">${(p.groups||[]).map(g=>`<span class="tag">${g}</span>`).join('')}</div>
+      <div class="exp">
+        ${p.dob?rowH('Ngày sinh',esc(p.dob)):''}
+        ${p.sex?rowH('Giới tính',esc(p.sex)):''}
+        ${p.phone?rowH('Điện thoại',`<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`):''}
+        ${p.email?rowH('Email',esc(p.email)):''}
+        ${p.note?rowH('Ghi chú',esc(p.note)):''}
+        ${p.src?rowH('Nguồn',`<span style="font-size:11px;color:#94a3b8">${esc(p.src)}</span>`):''}
+        <div class="actbtn">
+          <button class="e" onclick="event.stopPropagation();openEdit(${p.id})">✎ Sửa</button>
+          <button class="c" onclick="event.stopPropagation();callP('${esc(p.phone)}')">📞 Gọi</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function rowH(k,v){return `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`}
+function callP(p){if(p)location.href='tel:'+p;else toast('Chưa có số điện thoại')}
+function openEdit(id){
+  editId=id;const p=id?DATA.find(x=>x.id===id):{};
+  document.getElementById('mTitle').textContent=id?'Sửa thông tin':'Thêm người mới';
+  ['name','role','org','dob','sex','phone','email','note'].forEach(f=>document.getElementById('f_'+f).value=p[f]||'');
+  curGroups=id?[...(p.groups||[])]:[];
+  document.querySelectorAll('#grpSel span').forEach(s=>s.classList.toggle('on',curGroups.includes(s.textContent)));
+  document.getElementById('delBtn').style.display=id?'block':'none';
+  document.getElementById('modal').classList.add('on');
+}
+function toggleGrp(el,g){if(curGroups.includes(g)){curGroups=curGroups.filter(x=>x!==g);el.classList.remove('on')}else{curGroups.push(g);el.classList.add('on')}}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+function gv(f){return document.getElementById('f_'+f).value.trim()}
+async function savePerson(){
+  const name=gv('name');if(!name){toast('Vui lòng nhập Họ tên');return}
+  const obj={name,role:gv('role'),org:gv('org'),dob:gv('dob'),sex:gv('sex'),phone:gv('phone'),email:gv('email'),note:gv('note'),groups:[...curGroups]};
+  const btn=document.getElementById('saveBtn');
+  if(API_URL){
+    btn.innerHTML='<span class="spin"></span>';
+    try{
+      if(editId){
+        const old=DATA.find(x=>x.id===editId);
+        const chg=[];['role','org','phone','dob'].forEach(k=>{if((old[k]||'')!==(obj[k]||''))chg.push(k)});
+        obj.id=editId;
+        await apiPost('update',obj,chg.join(', '));
+        Object.assign(old,obj);
+      }else{
+        const r=await apiPost('add',obj);
+        obj.id=r.id||nextId++; obj.src='Nhập tay'; DATA.push(obj);
+      }
+      toast('✓ Đã lưu vào Google Sheet');
+    }catch(e){toast('⚠ Lỗi lưu Sheet, chỉ lưu tạm');if(!editId){obj.id=nextId++;DATA.push(obj)}else{Object.assign(DATA.find(x=>x.id===editId),obj)}}
+    btn.textContent='Lưu';
+  }else{
+    if(editId){Object.assign(DATA.find(x=>x.id===editId),obj)}
+    else{obj.id=nextId++;obj.src='Nhập tay';DATA.push(obj)}
+    toast('Đã lưu tạm (offline). Nối Sheet để lưu bền.');
+  }
+  if(obj.org&&!ORGS.includes(obj.org)){ORGS.push(obj.org);ORGS.sort();document.getElementById('orgList').innerHTML=ORGS.map(o=>`<option value="${o}">`).join('')}
+  closeModal();render();
+}
+async function delPerson(){
+  if(!confirm('Xóa người này khỏi danh bạ?'))return;
+  const p=DATA.find(x=>x.id===editId);
+  if(API_URL){try{await apiPost('delete',{id:editId,name:p.name});toast('✓ Đã xóa khỏi Sheet');}catch(e){toast('⚠ Lỗi xóa Sheet');}}
+  else toast('Đã xóa tạm (offline)');
+  DATA=DATA.filter(x=>x.id!==editId);closeModal();render();
+}
+async function apiPost(action,person,changed){
+  const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({pin:PIN,actor:ACTOR||'Ẩn danh',action,person,changed})});
+  const j=await res.json();
+  if(!j.ok)throw new Error(j.error||'Lỗi API');
+  return j;
+}
+function openSettings(){
+  document.getElementById('apiUrl').value=API_URL;
+  document.getElementById('actorName').value=ACTOR;
+  document.getElementById('setModal').classList.add('on');
+}
+function saveSettings(){
+  API_URL=document.getElementById('apiUrl').value.trim();
+  ACTOR=document.getElementById('actorName').value.trim();
+  try{localStorage.setItem('db_api',API_URL);localStorage.setItem('db_actor',ACTOR);}catch(e){window.__cfgApi=API_URL;window.__cfgActor=ACTOR;}
+  document.getElementById('setModal').classList.remove('on');
+  toast(API_URL?'Đã lưu. Đăng nhập lại để đồng bộ.':'Đã chuyển về offline.');
+  setMode(!!API_URL);
+}
+// khôi phục cấu hình từ localStorage (bản deploy thật)
+try{API_URL=localStorage.getItem('db_api')||API_URL;ACTOR=localStorage.getItem('db_actor')||ACTOR;}catch(e){}
+setMode(!!API_URL);
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  const cols=["Họ tên","Chức vụ","Cơ quan/Đơn vị","Ngày sinh","Giới tính","Điện thoại","Email","Nhóm","Ghi chú","Nguồn"];
+  const toRow=p=>[p.name,p.role,p.org,p.dob,p.sex,p.phone,p.email,(p.groups||[]).join(", "),p.note,p.src];
+  const wsAll=XLSX.utils.aoa_to_sheet([cols,...DATA.map(toRow)]);
+  wsAll['!cols']=cols.map(()=>({wch:18}));
+  XLSX.utils.book_append_sheet(wb,wsAll,"TỔNG HỢP");
+  GROUPS.forEach(g=>{
+    const rows=DATA.filter(p=>(p.groups||[]).includes(g));
+    if(rows.length){
+      const ws=XLSX.utils.aoa_to_sheet([cols,...rows.map(toRow)]);
+      ws['!cols']=cols.map(()=>({wch:18}));
+      XLSX.utils.book_append_sheet(wb,ws,g.replace(/[\/\\?*\[\]]/g,'-').slice(0,31));
+    }
+  });
+  const d=new Date();
+  XLSX.writeFile(wb,`DanhBa_TheoDoi_${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}.xlsx`);
+}
+</script></body></html>
