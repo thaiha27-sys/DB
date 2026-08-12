@@ -100,6 +100,8 @@
   .chk label{font-size:12px;color:#9a3412;font-weight:600;line-height:1.4}
   .mahs{background:var(--lb);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px;color:var(--navy)}
   .mahs b{font-family:monospace}
+  .shm{font-family:monospace;font-weight:700;color:#166534;background:#dcfce7;padding:2px 6px;border-radius:5px}
+  .shc{font-family:monospace;color:#94a3b8;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -212,7 +214,7 @@ try{API_URL=localStorage.getItem('db_api')||"";ACTOR=localStorage.getItem('db_ac
 
 // Nhóm trường hồ sơ hiển thị trong thẻ chi tiết
 const DGROUPS=[
-  {t:'📋 Công tác',f:['Đơn vị','Chức vụ','Ngạch/Hàm','Tên ngạch','Mã ngạch','Bậc lương','Hệ số lương','VTVL','Số hiệu CC','Ngày vào Ngành','Ngày đến ĐV','Đối tượng 111','Trạng thái nghỉ hưu']},
+  {t:'📋 Công tác',f:['Đơn vị','Chức vụ','Số hiệu CC (mới 2025)','Số hiệu CC (cũ)','Ngạch/Hàm','Tên ngạch','Mã ngạch','Bậc lương','Hệ số lương','VTVL','Ngày vào Ngành','Ngày đến ĐV','Đối tượng 111','Trạng thái nghỉ hưu']},
   {t:'🚩 Công tác Đảng',f:['Đảng viên','Chi bộ SH','Ngày vào Đảng','Ngày chính thức','Tuổi Đảng','CT/DB','Số thẻ ĐV','LLCT']},
   {t:'🎓 Trình độ & nhân thân',f:['Trình độ CM','QLNN','Năm sinh','Ngày sinh','Giới tính','Dân tộc','Tôn giáo','Quê quán','Email cá nhân','YT nước ngoài']},
   {t:'🔐 Định danh & tài chính',f:['Mã CBCC','CCCD','Số sổ BHXH','MST','Số tài khoản','Ngân hàng']},
@@ -398,7 +400,11 @@ function cardHTML(p){
 }
 function detailHTML(d){
   return DGROUPS.map(g=>{
-    const rows=g.f.filter(f=>String(d[f]||'').trim()).map(f=>rowH(f,esc(d[f]))).join('');
+    const rows=g.f.filter(f=>String(d[f]||'').trim()).map(f=>{
+      if(f==='Số hiệu CC (mới 2025)')return rowH('Số hiệu CC <b style="color:#166534">(mới)</b>',`<span class="shm">${esc(d[f])}</span>`);
+      if(f==='Số hiệu CC (cũ)')return rowH('Số hiệu CC (cũ)',`<span class="shc">${esc(d[f])}</span>`);
+      return rowH(f,esc(d[f]));
+    }).join('');
     if(!rows)return'';
     return `<div class="dsec" onclick="event.stopPropagation();this.classList.toggle('open')"><div class="dh">${g.t}<span class="ar">▾</span></div><div class="db">${rows}</div></div>`;
   }).join('');
