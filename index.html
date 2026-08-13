@@ -95,6 +95,7 @@
   .dsec .row{font-size:12px}
   .dsec .row .v{max-width:62%;word-break:break-word}
   .dhint{margin-top:8px;font-size:12px;color:var(--gray);font-style:italic}
+  .dnote{display:block;font-size:10px;line-height:1.35;color:var(--gray);font-weight:400;font-style:italic;margin-top:2px}
   .chk{display:flex;align-items:center;gap:8px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:9px;padding:9px 11px;margin-bottom:10px}
   .chk input{width:18px;height:18px;flex:0 0 auto}
   .chk label{font-size:12px;color:#9a3412;font-weight:600;line-height:1.4}
@@ -214,12 +215,17 @@ try{API_URL=localStorage.getItem('db_api')||"";ACTOR=localStorage.getItem('db_ac
 
 // Nhóm trường hồ sơ hiển thị trong thẻ chi tiết
 const DGROUPS=[
-  {t:'📋 Công tác',f:['Đơn vị','Chức vụ','Số hiệu CC (mới 2025)','Số hiệu CC (cũ)','Ngạch/Hàm','Tên ngạch','Mã ngạch','Bậc lương','Hệ số lương','VTVL','Ngày vào Ngành','Ngày đến ĐV','Đối tượng 111','Trạng thái nghỉ hưu']},
+  {t:'📋 Công tác',f:['Đơn vị','Chức vụ','Số hiệu CC (mới 2025)','Số hiệu CC (cũ)','Ngạch/Hàm','Tên ngạch','Mã ngạch','VTVL','Ngày vào Ngành','Ngày đến ĐV','Đối tượng 111','Trạng thái nghỉ hưu']},
   {t:'🚩 Công tác Đảng',f:['Đảng viên','Chi bộ SH','Ngày vào Đảng','Ngày chính thức','Tuổi Đảng','CT/DB','Số thẻ ĐV','LLCT']},
+  {t:'🏅 Quy hoạch – Bổ nhiệm – Khen thưởng – Kỷ luật',f:['Quy hoạch','Bổ nhiệm','Ngày bổ nhiệm','Khen thưởng','Kỷ luật','Ghi chú khác']},
   {t:'🎓 Trình độ & nhân thân',f:['Trình độ CM','QLNN','Năm sinh','Ngày sinh','Giới tính','Dân tộc','Tôn giáo','Quê quán','Email cá nhân','YT nước ngoài']},
-  {t:'🔐 Định danh & tài chính',f:['Mã CBCC','CCCD','Số sổ BHXH','MST','Số tài khoản','Ngân hàng']},
-  {t:'⚠ Ghi chú dữ liệu',f:['Cần xác minh','Nguồn (C/N/Đ)','Đơn vị (danh bạ gốc)','Đơn vị (file lương)','Thay đổi đơn vị?','Ghi chú ghép']}
+  {t:'🔐 Định danh & tài chính',f:['Mã CBCC','CCCD','Bậc lương','Hệ số lương','Hệ số phụ cấp chức vụ','Lương cơ bản tạm tính','Số sổ BHXH','MST','Số tài khoản','Ngân hàng']}
 ];
+// Chú thích hiện dưới ô giá trị của một số trường tài chính
+const DNOTE={
+  'Hệ số phụ cấp chức vụ':'Tra theo chức vụ ở sheet HESO_CHUCVU — tạm tính',
+  'Lương cơ bản tạm tính':'(Hệ số lương + Hệ số PCCV) × mức lương cơ sở 2.530.000 đ; chưa gồm vượt khung và phụ cấp khác'
+};
 const PRESETS=[
   {label:"LĐ UBND tỉnh",group:"UBND",role:"",org:""},
   {label:"Trưởng sở ban ngành",group:"Trưởng sở ban ngành",role:"",org:""},
@@ -403,6 +409,7 @@ function detailHTML(d){
     const rows=g.f.filter(f=>String(d[f]||'').trim()).map(f=>{
       if(f==='Số hiệu CC (mới 2025)')return rowH('Số hiệu CC <b style="color:#166534">(mới)</b>',`<span class="shm">${esc(d[f])}</span>`);
       if(f==='Số hiệu CC (cũ)')return rowH('Số hiệu CC (cũ)',`<span class="shc">${esc(d[f])}</span>`);
+      if(DNOTE[f])return rowH(f,`${esc(d[f])}<span class="dnote">${DNOTE[f]}</span>`);
       return rowH(f,esc(d[f]));
     }).join('');
     if(!rows)return'';
